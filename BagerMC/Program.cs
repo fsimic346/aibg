@@ -5,26 +5,16 @@ using Newtonsoft.Json;
 using BagerMC.DTO.Model;
 using BagerMC;
 
-using HttpClient client = new();
-client.DefaultRequestHeaders.Accept.Clear();
-client.DefaultRequestHeaders.Accept.Add(
-    new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
-client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
+GameAPI gameAPI= new GameAPI();
 
-await ProcessRepositoriesAsync(client);
+Training training = new Training();
+training.PlayerSpot = 1;
+training.PlayerId = gameAPI.PlayerId;
+await gameAPI.CreateGame(training);
 
-static async Task ProcessRepositoriesAsync(HttpClient client)
-{
-    Training training = new Training();
-    training.PlayerId = 132485;
-    training.PlayerSpot = 1;
-    var response = client.PostAsJsonAsync("http://localhost:8082/train/makeGame", training).Result;
-
-    if (response.IsSuccessStatusCode)
-    {
-        var jsonString = await response.Content.ReadAsStringAsync();
-        Console.WriteLine(JsonConvert.DeserializeObject<Game>(jsonString));
-        //GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
-
-    }
-}
+Move move = new Move();
+move.Distance = 2;
+move.PlayerId = gameAPI.PlayerId;
+move.GameId = gameAPI.Game.GameId;
+move.Direction = Direction.s.ToString();
+await gameAPI.ExecuteAction(move);
