@@ -18,12 +18,13 @@ static async Task ProcessRepositoriesAsync(HttpClient client)
     Training training = new Training();
     training.PlayerId = 132485;
     training.PlayerSpot = 1;
-    var response = client.PostAsJsonAsync("http://localhost:8080/train/makeGame", training).Result;
+    var response = client.PostAsJsonAsync("http://localhost:8082/train/makeGame", training).Result;
 
     if (response.IsSuccessStatusCode)
     {
         var jsonString = await response.Content.ReadAsStringAsync();
-        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
+        Console.WriteLine(JsonConvert.DeserializeObject<Game>(jsonString));
+        //GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
 
     }
 }
