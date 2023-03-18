@@ -11,7 +11,7 @@ namespace BagerMC.DTO.Action
         s,
         a
     }
-    public class Move
+    public class Move : BaseAction
     {
         [JsonProperty("playerId")]
         public int PlayerId { get; set; }

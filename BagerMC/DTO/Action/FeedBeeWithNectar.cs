@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BagerMC.DTO.Action
 {
-    public class FeedBeeWithNectar
+    public class FeedBeeWithNectar : BaseAction
     {
         [JsonProperty("playerId")]
         public int PlayerId { get; set; }

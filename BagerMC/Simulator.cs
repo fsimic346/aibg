@@ -18,7 +18,7 @@ namespace BagerMC
         public static void ApplyConvertNectarToHoney(Game currentState, ConvertNectarToHoney action, bool isFirstPlayer)
         {
             Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
-            if(player.X != player.HiveX || player.Y != player.Y)
+            if(player.X != player.HiveX || player.HiveY != player.Y)
             {
                 throw new InvalidActionException("Bee is not in a hive");
             }
@@ -35,7 +35,7 @@ namespace BagerMC
         public static void ApplyFeedBeeWithNectar(Game currentState, FeedBeeWithNectar action, bool isFirstPlayer)
         {
             Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
-            if (player.X != player.HiveX || player.Y != player.Y)
+            if (player.X != player.HiveX || player.Y != player.HiveY)
             {
                 throw new InvalidActionException("Bee is not in a hive");
             }
@@ -68,7 +68,7 @@ namespace BagerMC
                 }
                 else
                 {
-                    break;
+                    throw new InvalidActionException("You are hitting the wall");
                 }
             }
         }
@@ -142,6 +142,57 @@ namespace BagerMC
                     break;
             }
         }
+        private static void GetMovesForDirection(string direction, Game currentState, bool isFirstPlayer, List<GameState> states)
+        {
+            int distance = 1;
+            while (true)
+            {
+                Game tempState = currentState.DeepCopy();
+                Move action = new Move { Direction = direction, Distance = distance, GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId };
+                try
+                {
+                    ApplyMove(tempState, action, isFirstPlayer);
+                }
+                catch (InvalidActionException e)
+                {
+                    break;
+                }
+                states.Add(new GameState { Action = action, State = tempState});
+                if (tempState.Finished)
+                {
+                    break;
+                }
+                distance++;
+            }
+        }
+        public static List<GameState> GetPossibleStates(Game currentState, bool isFirstPlayer)
+        {
+            List<GameState> states = new List<GameState>();
+            GetMovesForDirection("q", currentState, isFirstPlayer, states);
+            GetMovesForDirection("w", currentState, isFirstPlayer, states);
+            GetMovesForDirection("e", currentState, isFirstPlayer, states);
+            GetMovesForDirection("a", currentState, isFirstPlayer, states);
+            GetMovesForDirection("s", currentState, isFirstPlayer, states);
+            GetMovesForDirection("d", currentState, isFirstPlayer, states);
+            Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
+            if (player.X == player.HiveX && player.Y == player.HiveY)
+            {
+                Game tempStateRegenerateEnergy = currentState.DeepCopy();
+                FeedBeeWithNectar feedAction = new FeedBeeWithNectar { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId, AmountOfNectarToFeedWith = (100 - player.Energy) / 2 };
+                ApplyFeedBeeWithNectar(tempStateRegenerateEnergy, feedAction, isFirstPlayer);
+                states.Add(new GameState { Action = feedAction, State = tempStateRegenerateEnergy });
+
+                Game tempStateCreateHoney = currentState.DeepCopy();
+                ConvertNectarToHoney createHoneyAction = new ConvertNectarToHoney { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId, AmountOfHoneyToMake = 10 };
+                ApplyFeedBeeWithNectar(tempStateCreateHoney, feedAction, isFirstPlayer);
+                states.Add(new GameState { Action = createHoneyAction, State = tempStateCreateHoney });
+            }
+            Game tempStateSkipATurn = currentState.DeepCopy();
+            SkipATurn action = new SkipATurn { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId };
+            ApplySkipATurn(tempStateSkipATurn, action, isFirstPlayer);
+            return states;
+        }
+
         private static Tuple<int, int> getCoordinatesAfterMove(int xCo, int yCo, String dir)
         {
             int offset;
