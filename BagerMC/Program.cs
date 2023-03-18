@@ -17,4 +17,8 @@ move.Distance = 2;
 move.PlayerId = gameAPI.PlayerId;
 move.GameId = gameAPI.Game.GameId;
 move.Direction = Direction.s.ToString();
+Console.ReadLine();
 await gameAPI.ExecuteAction(move);
+//move.PlayerId = gameAPI.PlayerId + 1;
+//move.Direction = Direction.w.ToString();
+//await gameAPI.ExecuteAction(move);

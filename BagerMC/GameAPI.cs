@@ -6,7 +6,7 @@ using System.Net.Http.Json;
 
 namespace BagerMC
 {
-    internal class GameAPI
+    public class GameAPI
     {
         public Game Game;
         public int PlayerId = 132485;
@@ -44,6 +44,8 @@ namespace BagerMC
         {
             string uri = IsTraining ? BaseUrl + "makeGame" : BaseUrl + $"joinGame?playerId={PlayerId}&gameId={GameId}";
             //string uri = $"http://localhost:8080/botVSbot?player1Id={PlayerId}&player2Id={PlayerId+1}";
+            // var response = HttpClient.GetStringAsync(uri).Result;
+
             var response = HttpClient.PostAsJsonAsync(uri, data).Result;
 
             if (response.IsSuccessStatusCode)
