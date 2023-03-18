@@ -218,6 +218,47 @@ namespace BagerMC
                     return Tuple.Create(0, 0);
             }
         }
+        public static bool IsGameFinished(Game game)
+        {
+            // 1. Uslov za kraj (dostignut potez 500)
+            if (game.NumOfMove >= 500)
+            {
+                game.Finished = true;
+                return true;
+            }
+            // 2. Uslov za kraj (nema cveca na mapi)
+            if (IsBoardEmpty(game) == true)
+            {
+                game.Finished = true;
+                return true;
+            }
+            // 3. Uslov za kraj (SkipATurn > 150)
+            if (game.Player1.NumOfSkipATurnUsed == 150 || game.Player2.NumOfSkipATurnUsed == 150)
+            {
+                game.Finished = true;
+                return true;
+            }
+            // 5. Uslov za kraj (Igrac stao na POND polje)
+
+            // 6. Uslov za kraj (Igrac nema vise energije)
+            if (game.Player1.Energy == 0 || game.Player2.Energy == 0)
+            {
+                game.Finished = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsBoardEmpty(Game game)
+        {
+            foreach (var tile in game.Map.Tiles)
+            {
+                if (tile.TileContent.ItemType == ItemType.CHERRY_BLOSSOM || tile.TileContent.ItemType == ItemType.ROSE || tile.TileContent.ItemType == ItemType.LILAC || tile.TileContent.ItemType == ItemType.SUNFLOWER)
+                    return false;
+            }
+            return true;
+        }
 
     }
 }
