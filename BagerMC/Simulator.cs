@@ -142,25 +142,25 @@ namespace BagerMC
                     break;
             }
         }
-        private static Tuple<int, int> getCoordinatesAfterMove(int xCo, int yCo, Direction dir)
+        private static Tuple<int, int> getCoordinatesAfterMove(int xCo, int yCo, String dir)
         {
             int offset;
             switch (dir)
             {
-                case Direction.w:
+                case "w":
                     return Tuple.Create(xCo - 2, yCo);
-                case Direction.s:
+                case "s":
                     return Tuple.Create(xCo + 2, yCo);
-                case Direction.q:
+                case "q":
                     offset = xCo % 2 == 0 ? -1 : 0;
                     return Tuple.Create(xCo - 1, yCo + offset);
-                case Direction.e:
+                case "e":
                     offset = xCo % 2 == 0 ? 0 : 1;
                     return Tuple.Create(xCo - 1, yCo + offset);
-                case Direction.a:
+                case "a":
                     offset = xCo % 2 == 0 ? -1 : 0;
                     return Tuple.Create(xCo + 1, yCo + offset);
-                case Direction.d:
+                case "d":
                     offset = xCo % 2 == 0 ? 0 : 1;
                     return Tuple.Create(xCo + 1, yCo + offset);
                 default:
