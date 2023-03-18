@@ -18,7 +18,7 @@ namespace BagerMC.DTO.Action
         [JsonProperty("gameId")]
         public int GameId { get; set; }
         [JsonProperty("direction")]
-        public Direction Direction { get; set; }
+        public string Direction { get; set; }
         [JsonProperty("distance")]
         public int Distance { get; set; }
     }

@@ -31,8 +31,8 @@ namespace BagerMC.DTO.Model
         [JsonProperty("numOfSkipATurnUsed")]
         public int NumOfSkipATurnUsed { get; set; }
         [JsonProperty("executedAction")]
-        public ExecutedAction ExecutedAction { get; set; }
-        [JsonProperty("DistanceMoved")]
+        public ExecutedAction? ExecutedAction { get; set; }
+        [JsonProperty("distanceMoved")]
         public int DistanceMoved { get; set; }
         [JsonProperty("teamName")]
         public string TeamName { get; set; }

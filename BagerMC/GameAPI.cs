@@ -1,47 +1,99 @@
 ﻿using BagerMC.DTO.Action;
+using BagerMC.DTO.Model;
 using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace BagerMC
 {
     internal class GameAPI
     {
-        private const string BASE_URL = "https://localhost:8080";
-        private HttpClient client = new();
+        public Game Game;
+        public int PlayerId = 132485;
+        private int GameId;
+        private string BaseUrl = "http://localhost:8080/";
+        private HttpClient HttpClient;
+        private bool IsTraining = true;
         public GameAPI()
         {
-            client.DefaultRequestHeaders.Accept.Clear();
-            client.DefaultRequestHeaders.Accept.Add(
+            HttpClient = new HttpClient();
+            HttpClient.DefaultRequestHeaders.Accept.Clear();
+            HttpClient.DefaultRequestHeaders.Accept.Add(
                 new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
-            client.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
+            HttpClient.DefaultRequestHeaders.Add("User-Agent", ".NET Foundation Repository Reporter");
+            if (IsTraining)
+                BaseUrl += "train/";
         }
-        public async Task createGame(Training credentials)
-        {
-            var json = await client.PostAsJsonAsync(
-                 "http://localhost:8080/train/makeGame", credentials);
 
-            Console.Write(json);
-        }
-        public void move(Move moveDTO)
+        public async Task ExecuteAction<T>(T data)
         {
-            HttpClient client = new HttpClient();
-            using (var request = new HttpRequestMessage(HttpMethod.Post, BASE_URL + "/train/move"))
+            var genType = typeof(T);
+
+            if (genType != typeof(ConvertNectarToHoney) && genType != typeof(FeedBeeWithNectar) && genType != typeof(Move) && genType != typeof(SkipATurn)) { return; }
+
+            string endpoint = char.ToLower(genType.Name[0]) + genType.Name[1..];
+            var response = HttpClient.PostAsJsonAsync(BaseUrl + endpoint, data).Result;
+
+            if (response.IsSuccessStatusCode)
             {
-                string json = JsonConvert.SerializeObject(moveDTO);
-                request.Content = new StringContent(json, Encoding.UTF8, "application/json");
-
-                var response = client.Send(request);
-                response.EnsureSuccessStatusCode();
-
-                using var streamReader = new StreamReader(response.Content.ReadAsStream());
-                Console.WriteLine(streamReader.ReadToEnd());
+                var jsonString = await response.Content.ReadAsStringAsync();
+                Game = JsonConvert.DeserializeObject<Game>(jsonString);
             }
         }
+        public async Task CreateGame(Training data)
+        {
+            string uri = IsTraining ? BaseUrl + "makeGame" : BaseUrl + $"joinGame?playerId={PlayerId}&gameId={GameId}";
+            //string uri = $"http://localhost:8080/botVSbot?player1Id={PlayerId}&player2Id={PlayerId+1}";
+            var response = HttpClient.PostAsJsonAsync(uri, data).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonString = await response.Content.ReadAsStringAsync();
+                Game = JsonConvert.DeserializeObject<Game>(jsonString);
+            }
+        }
+        //public async Task Move(Move data)
+        //{
+        //    var response = HttpClient.PostAsJsonAsync("move", data).Result;
+
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var jsonString = await response.Content.ReadAsStringAsync();
+        //        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
+        //    }
+        //}
+
+        //public async Task ConvertNectarToHoney(ConvertNectarToHoney data)
+        //{
+        //    var response = HttpClient.PostAsJsonAsync("convertNectarToHoney", data).Result;
+
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var jsonString = await response.Content.ReadAsStringAsync();
+        //        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
+        //    }
+        //}
+
+        //public async Task FeedBeWithNectar(FeedBeeWithNectar data)
+        //{
+        //    var response = HttpClient.PostAsJsonAsync("feedBeeWithNectar", data).Result;
+
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var jsonString = await response.Content.ReadAsStringAsync();
+        //        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
+        //    }
+        //}
+
+        //public async Task SkipATurn(SkipATurn data)
+        //{
+        //    var response = HttpClient.PostAsJsonAsync("skipATurn", data).Result;
+
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var jsonString = await response.Content.ReadAsStringAsync();
+        //        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
+        //    }
+        //}
     }
 }
