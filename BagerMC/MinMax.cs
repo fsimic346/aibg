@@ -25,7 +25,8 @@ namespace BagerMC
                     GameState childState = MiniMax(item, depth - 1, alpha, beta, false);
                     if (childState.Evaluation > MaxEvaluatedState.Evaluation)
                     {
-                        MaxEvaluatedState = childState;
+                        MaxEvaluatedState.Evaluation = childState.Evaluation;
+                        MaxEvaluatedState.Action = item.Action;
                     }
                     alpha = Math.Max(alpha, childState.Evaluation);
                     if (beta <= alpha)
@@ -42,7 +43,8 @@ namespace BagerMC
                     GameState childState = MiniMax(item, depth - 1, alpha, beta, false);
                     if (childState.Evaluation < MinEvaluatedState.Evaluation)
                     {
-                        MinEvaluatedState = childState;
+                        MinEvaluatedState.Evaluation = childState.Evaluation;
+                        MinEvaluatedState.Action = item.Action;
                     }
                     beta = Math.Min(alpha, childState.Evaluation);
                     if (beta <= alpha)

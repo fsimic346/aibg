@@ -2,6 +2,7 @@
 using BagerMC.DTO.Exceptions;
 using BagerMC.DTO.Model;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,7 +19,7 @@ namespace BagerMC
         public static void ApplyConvertNectarToHoney(Game currentState, ConvertNectarToHoney action, bool isFirstPlayer)
         {
             Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
-            if(player.X != player.HiveX || player.HiveY != player.Y)
+            if (player.X != player.HiveX || player.HiveY != player.Y)
             {
                 throw new InvalidActionException("Bee is not in a hive");
             }
@@ -41,7 +42,7 @@ namespace BagerMC
             }
             int nectarUsage = Math.Min(action.AmountOfNectarToFeedWith, player.Nectar);
             player.Nectar -= nectarUsage;
-            player.Energy += nectarUsage * 2;            
+            player.Energy += nectarUsage * 2;
         }
         public static void ApplyMove(Game currentState, Move action, bool isFirstPlayer)
         {
@@ -55,7 +56,9 @@ namespace BagerMC
                 if (updatedCoo.Item1 < currentState.Map.Height && updatedCoo.Item2 < currentState.Map.Width && updatedCoo.Item1 >= 0 && updatedCoo.Item2 >= 0)
                 {
                     player.Energy -= 2;
-                    if(player.Energy == 0)
+                    player.X = updatedCoo.Item1;
+                    player.Y = updatedCoo.Item2;
+                    if (player.Energy == 0)
                     {
                         currentState.Finished = true;
                         currentState.WinnerTeamName = opponent.TeamName;
@@ -72,10 +75,10 @@ namespace BagerMC
                 }
             }
         }
-        public static void ApplySkipATurn(Game currentState, SkipATurn action, bool isFirstPlayer)
+        public static void ApplySkipATurn(Game currentState, bool isFirstPlayer)
         {
             Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
-            player.Energy += 5;            
+            player.Energy += 5;
         }
         private static void ApplyTile(Tile tile, Player player, Player opponent, Game currentState)
         {
@@ -87,15 +90,19 @@ namespace BagerMC
                 case (ItemType.ROSE):
                 case (ItemType.SUNFLOWER):
                     tile.TileContent.ItemType = ItemType.EMPTY;
-                    player.Score += tile.TileContent.NumOfItems;
-                    player.Nectar = Math.Max(100, tile.TileContent.NumOfItems + player.Nectar);
+                    if (player.Nectar < 100)
+                    {
+                        player.Score += tile.TileContent.NumOfItems;
+                        player.Nectar = Math.Min(100, tile.TileContent.NumOfItems + player.Nectar);
+                    }
                     break;
                 case (ItemType.POND):
+                    player.Score -= 100000;
                     currentState.Finished = true;
                     currentState.WinnerTeamName = opponent.TeamName;
                     break;
                 case (ItemType.ENERGY):
-                    int newEnergy = Math.Max(100, tile.TileContent.NumOfItems + player.Energy);
+                    int newEnergy = Math.Min(100, tile.TileContent.NumOfItems + player.Energy);
                     player.Score += newEnergy - player.Energy;
                     player.Energy = newEnergy;
                     tile.TileContent.ItemType = ItemType.EMPTY;
@@ -113,22 +120,31 @@ namespace BagerMC
                 case (ItemType.BOOSTER_NECTAR_100_PCT):
                     tile.TileContent.ItemType = ItemType.EMPTY;
                     newNectar = Math.Min(100, player.Nectar * 2);
-                    player.Score += newNectar - player.Nectar;
-                    player.Nectar = newNectar;
+                    if (player.Nectar < 100)
+                    {
+                        player.Score += newNectar - player.Nectar;
+                        player.Nectar = newNectar;
+                    }
                     break;
                 case (ItemType.BOOSTER_NECTAR_50_PCT):
                     tile.TileContent.ItemType = ItemType.EMPTY;
-                    pct = (int) Math.Floor(player.Nectar * 1.5);
+                    pct = (int)Math.Floor(player.Nectar * 1.5);
                     newNectar = Math.Min(100, pct);
-                    player.Score += newNectar - player.Nectar;
-                    player.Nectar = newNectar;
+                    if (player.Nectar < 100)
+                    {
+                        player.Score += newNectar - player.Nectar;
+                        player.Nectar = newNectar;
+                    }
                     break;
                 case (ItemType.BOOSTER_NECTAR_30_PCT):
                     tile.TileContent.ItemType = ItemType.EMPTY;
                     pct = (int)Math.Floor(player.Nectar * 1.3);
                     newNectar = Math.Min(100, pct);
-                    player.Score += newNectar - player.Nectar;
-                    player.Nectar = newNectar;
+                    if (player.Nectar < 100)
+                    {
+                        player.Score += newNectar - player.Nectar;
+                        player.Nectar = newNectar;
+                    }
                     break;
                 case (ItemType.SUPER_HONEY):
                     tile.TileContent.ItemType = ItemType.EMPTY;
@@ -152,14 +168,14 @@ namespace BagerMC
                 try
                 {
                     ApplyMove(tempState, action, isFirstPlayer);
-                    //Console.WriteLine(direction + " " + distance);
+                    Console.WriteLine(direction + " " + distance);
                 }
                 catch (InvalidActionException e)
                 {
-                    Console.WriteLine(direction + " " + distance);
+                    //Console.WriteLine(direction + " " + distance);
                     break;
                 }
-                states.Add(new GameState { Action = action, State = tempState});
+                states.Add(new GameState { Action = action, State = tempState });
                 if (tempState.Finished)
                 {
                     break;
@@ -192,7 +208,8 @@ namespace BagerMC
             }
             Game tempStateSkipATurn = currentState.DeepCopy();
             SkipATurn action = new SkipATurn { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId };
-            ApplySkipATurn(tempStateSkipATurn, action, isFirstPlayer);
+            ApplySkipATurn(tempStateSkipATurn, isFirstPlayer);
+            states.Add(new GameState { Action = action, State = tempStateSkipATurn });
             return states;
         }
 
@@ -262,6 +279,73 @@ namespace BagerMC
             }
             return true;
         }
+
+        public static Direction GetDirection(int oldX, int oldY, int newX, int newY, int distanceTraveled)
+        {
+            if (oldX > newX && oldY == newY)
+            {
+                if (distanceTraveled == 1 && Math.Abs(newX - oldX) == 1)
+                    return Direction.e;
+                return Direction.w;
+            }
+            if (newX > oldX && oldY == newY)
+            {
+                if (distanceTraveled == 1 && Math.Abs(newX - oldX) == 1)
+                    return Direction.a;
+                return Direction.s;
+            }
+            if (oldX > newX && oldY <= newY)
+            {
+                return Direction.e;
+            }
+            if (oldX > newX && newY <= oldY)
+            {
+                return Direction.q;
+            }
+            if (newX > oldX && newY <= oldY)
+            {
+                return Direction.a;
+            }
+            return Direction.d;
+        }
+
+        public static void HandleOpponent(Game oldState, Game newState)
+        {
+            Player opponent = newState.Player2;
+            try
+            {
+                if (opponent.ExecutedAction == ExecutedAction.MOVE || opponent.ExecutedAction == ExecutedAction.MOVE_ON_POND || opponent.ExecutedAction == ExecutedAction.MOVE_IMPOSSIBLE)
+                {
+                    Move move = new Move();
+                    move.Distance = opponent.DistanceMoved;
+                    move.Direction = GetDirection(oldState.Player2.X, oldState.Player2.Y, opponent.X, opponent.Y, opponent.DistanceMoved).ToString();
+                    Console.WriteLine(move.Direction);
+                    ApplyMove(oldState, move, false);
+                }
+                else if (opponent.ExecutedAction == ExecutedAction.SKIP_A_TURN)
+                {
+                    ApplySkipATurn(oldState, false);
+                }
+                else if (opponent.ExecutedAction == ExecutedAction.FEED_BEE_WITH_NECTAR)
+                {
+                    FeedBeeWithNectar feedBeeWithNectar = new FeedBeeWithNectar();
+                    feedBeeWithNectar.AmountOfNectarToFeedWith = (newState.Player2.Energy - oldState.Player2.Energy) / 2;
+                    ApplyFeedBeeWithNectar(oldState, feedBeeWithNectar, false);
+
+                }
+                else
+                {
+                    ConvertNectarToHoney convertNectarToHoney = new ConvertNectarToHoney();
+                    convertNectarToHoney.AmountOfHoneyToMake = (newState.Player2.Honey - oldState.Player2.Honey);
+                    ApplyConvertNectarToHoney(oldState, convertNectarToHoney, false);
+                }
+            }
+            catch (Exception)
+            {
+
+            }
+        }
+
 
     }
 }
