@@ -7,7 +7,8 @@ using System.Threading.Tasks;
 
 namespace BagerMC.DTO.Action
 {
-    internal interface BaseAction
+    public interface BaseAction
     {        
+        public void Execute(GameAPI gameAPI);
     }
 }

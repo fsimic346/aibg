@@ -11,8 +11,8 @@ namespace BagerMC
         public Game Game;
         public int PlayerId = 132485;
         private int GameId;
-        private string BaseUrl = "http://localhost:8080/";
-        private HttpClient HttpClient;
+        public string BaseUrl = "http://localhost:8080/";
+        public HttpClient HttpClient;
         private bool IsTraining = true;
         public GameAPI()
         {
@@ -25,21 +25,23 @@ namespace BagerMC
                 BaseUrl += "train/";
         }
 
-        public async Task ExecuteAction<T>(T data)
-        {
-            var genType = typeof(T);
+        //public async Task ExecuteAction<T>(T data) where T:BaseAction
+        //{
+        //    var genType = data.GetType();
 
-            if (genType != typeof(ConvertNectarToHoney) && genType != typeof(FeedBeeWithNectar) && genType != typeof(Move) && genType != typeof(SkipATurn)) { return; }
+        //    if (genType != typeof(ConvertNectarToHoney) && genType != typeof(FeedBeeWithNectar) && genType != typeof(Move) && genType != typeof(SkipATurn)) { return; }
 
-            string endpoint = char.ToLower(genType.Name[0]) + genType.Name[1..];
-            var response = HttpClient.PostAsJsonAsync(BaseUrl + endpoint, data).Result;
 
-            if (response.IsSuccessStatusCode)
-            {
-                var jsonString = await response.Content.ReadAsStringAsync();
-                Game = JsonConvert.DeserializeObject<Game>(jsonString);
-            }
-        }
+        //    Move move = data as Move;
+        //    string endpoint = char.ToLower(genType.Name[0]) + genType.Name[1..];
+        //    var response = HttpClient.PostAsJsonAsync(BaseUrl + endpoint, data).Result;
+
+        //    if (response.IsSuccessStatusCode)
+        //    {
+        //        var jsonString = await response.Content.ReadAsStringAsync();
+        //        Game = JsonConvert.DeserializeObject<Game>(jsonString);
+        //    }
+        //}
         public async Task CreateGame(Training data)
         {
             string uri = IsTraining ? BaseUrl + "makeGame" : BaseUrl + $"joinGame?playerId={PlayerId}&gameId={GameId}";

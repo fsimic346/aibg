@@ -7,49 +7,54 @@ using System.Threading.Tasks;
 
 namespace BagerMC
 {
-    public class MinMax
+    public static class MinMax
     {
-
-        public int MiniMax(Game game, int depth, int alpha, int beta, bool maximizingPlayer)
+        public static GameState MiniMax(GameState currentState, int depth, int alpha, int beta, bool maximizingPlayer)
         {
-            //int P1Evaluation = game.Game.Player1.Score;
-            //int P2Evaluation = game.Game.Player2.Score;
-            if (depth == 0)
+            if (depth == 0 || Simulator.IsGameFinished(currentState.State))
             {
-                return 1;
+                currentState.Evaluation = EvaluateState(currentState.State);
+                return currentState;
             }
             if (maximizingPlayer)
             {
-                int MaxEvaluation = -100000;
-                foreach(var item in Test())
+                GameState MaxEvaluatedState = new GameState();
+                MaxEvaluatedState.Evaluation = -100000;
+                foreach (var item in Simulator.GetPossibleStates(currentState.State, maximizingPlayer))
                 {
-                    int Evaluation = MiniMax(item, depth - 1, alpha, beta, false);
-                    MaxEvaluation = Math.Max(MaxEvaluation, Evaluation);
-                    alpha = Math.Max(alpha, Evaluation);
-                    if(beta <= alpha)
-                        break;
-                }
-                return MaxEvaluation;
-            }
-            else
-            {
-                int MinimumEvaluation = +100000;
-                foreach(var item in Test())
-                {
-                    int Evaluation = MiniMax(item, depth - 1, alpha, beta, true);
-                    MinimumEvaluation = Math.Min(MinimumEvaluation, Evaluation);
-                    alpha = Math.Min(beta, Evaluation);
+                    GameState childState = MiniMax(item, depth - 1, alpha, beta, false);
+                    if (childState.Evaluation > MaxEvaluatedState.Evaluation)
+                    {
+                        MaxEvaluatedState = childState;
+                    }
+                    alpha = Math.Max(alpha, childState.Evaluation);
                     if (beta <= alpha)
                         break;
                 }
-                return MinimumEvaluation;
+                return MaxEvaluatedState;
+            }
+            else
+            {
+                GameState MinEvaluatedState = new GameState();
+                MinEvaluatedState.Evaluation = 100000;
+                foreach (var item in Simulator.GetPossibleStates(currentState.State, maximizingPlayer))
+                {
+                    GameState childState = MiniMax(item, depth - 1, alpha, beta, false);
+                    if (childState.Evaluation < MinEvaluatedState.Evaluation)
+                    {
+                        MinEvaluatedState = childState;
+                    }
+                    beta = Math.Min(alpha, childState.Evaluation);
+                    if (beta <= alpha)
+                        break;
+                }
+                return MinEvaluatedState;
             }
         }
 
-        public List<Game> Test()
+        private static int EvaluateState(Game state)
         {
-            List<Game> list = new List<Game>();
-            return list;
+            return state.Player1.Score - state.Player2.Score;
         }
     }
 }

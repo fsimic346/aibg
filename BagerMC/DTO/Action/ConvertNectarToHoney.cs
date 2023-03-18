@@ -1,9 +1,6 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using BagerMC.DTO.Model;
+using Newtonsoft.Json;
+using System.Net.Http.Json;
 
 namespace BagerMC.DTO.Action
 {
@@ -15,5 +12,16 @@ namespace BagerMC.DTO.Action
         public int GameId { get; set; }
         [JsonProperty("amountOfHoneyToMake")]
         public int AmountOfHoneyToMake { get; set; }
+
+        public async void Execute(GameAPI gameAPI)
+        {
+            var response = gameAPI.HttpClient.PostAsJsonAsync(gameAPI.BaseUrl + "convertNectarToHoney", this).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonString = await response.Content.ReadAsStringAsync();
+                gameAPI.Game = JsonConvert.DeserializeObject<Game>(jsonString);
+            }
+        }
     }
 }

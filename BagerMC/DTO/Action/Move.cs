@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using BagerMC.DTO.Model;
+using Newtonsoft.Json;
+using System.Net.Http.Json;
 
 namespace BagerMC.DTO.Action
 {
@@ -21,5 +23,16 @@ namespace BagerMC.DTO.Action
         public string Direction { get; set; }
         [JsonProperty("distance")]
         public int Distance { get; set; }
+
+        public async void Execute(GameAPI gameAPI)
+        {
+            var response = gameAPI.HttpClient.PostAsJsonAsync(gameAPI.BaseUrl + "move", this).Result;
+
+            if (response.IsSuccessStatusCode)
+            {
+                var jsonString = await response.Content.ReadAsStringAsync();
+                gameAPI.Game = JsonConvert.DeserializeObject<Game>(jsonString);
+            }
+        }
     }
 }

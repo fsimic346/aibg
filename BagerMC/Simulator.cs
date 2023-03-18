@@ -52,7 +52,7 @@ namespace BagerMC
             for (int i = 0; i < action.Distance; i++)
             {
                 Tuple<int, int> updatedCoo = getCoordinatesAfterMove(player.X, player.Y, action.Direction);
-                if (updatedCoo.Item1 >= currentState.Map.Height || updatedCoo.Item2 >= currentState.Map.Width || updatedCoo.Item1 < 0 || updatedCoo.Item2 < 0)
+                if (updatedCoo.Item1 < currentState.Map.Height && updatedCoo.Item2 < currentState.Map.Width && updatedCoo.Item1 >= 0 && updatedCoo.Item2 >= 0)
                 {
                     player.Energy -= 2;
                     if(player.Energy == 0)
@@ -152,9 +152,11 @@ namespace BagerMC
                 try
                 {
                     ApplyMove(tempState, action, isFirstPlayer);
+                    //Console.WriteLine(direction + " " + distance);
                 }
                 catch (InvalidActionException e)
                 {
+                    Console.WriteLine(direction + " " + distance);
                     break;
                 }
                 states.Add(new GameState { Action = action, State = tempState});
@@ -164,6 +166,7 @@ namespace BagerMC
                 }
                 distance++;
             }
+
         }
         public static List<GameState> GetPossibleStates(Game currentState, bool isFirstPlayer)
         {

@@ -21,7 +21,7 @@ namespace BagerMC.DTO.Model
 
         public Map DeepCopy()
         {
-            Tile[,] deepcopyTiles = new Tile[Width, Height];
+            Tile[,] deepcopyTiles = new Tile[Height, Width];
             foreach (var item in Tiles)
             {
                 deepcopyTiles[item.Row, item.Column] = item.DeepCopy();
