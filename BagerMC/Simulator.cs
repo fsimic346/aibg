@@ -19,7 +19,7 @@ namespace BagerMC
         public static void ApplyConvertNectarToHoney(Game currentState, ConvertNectarToHoney action, bool isFirstPlayer)
         {
             Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
-            if (player.X != player.HiveX || player.Y != player.Y)
+            if(player.X != player.HiveX || player.HiveY != player.Y)
             {
                 throw new InvalidActionException("Bee is not in a hive");
             }
@@ -36,7 +36,7 @@ namespace BagerMC
         public static void ApplyFeedBeeWithNectar(Game currentState, FeedBeeWithNectar action, bool isFirstPlayer)
         {
             Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
-            if (player.X != player.HiveX || player.Y != player.Y)
+            if (player.X != player.HiveX || player.Y != player.HiveY)
             {
                 throw new InvalidActionException("Bee is not in a hive");
             }
@@ -71,7 +71,7 @@ namespace BagerMC
                 }
                 else
                 {
-                    break;
+                    throw new InvalidActionException("You are hitting the wall");
                 }
             }
         }
@@ -145,7 +145,58 @@ namespace BagerMC
                     break;
             }
         }
-        private static Tuple<int, int> getCoordinatesAfterMove(int xCo, int yCo, string dir)
+        private static void GetMovesForDirection(string direction, Game currentState, bool isFirstPlayer, List<GameState> states)
+        {
+            int distance = 1;
+            while (true)
+            {
+                Game tempState = currentState.DeepCopy();
+                Move action = new Move { Direction = direction, Distance = distance, GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId };
+                try
+                {
+                    ApplyMove(tempState, action, isFirstPlayer);
+                }
+                catch (InvalidActionException e)
+                {
+                    break;
+                }
+                states.Add(new GameState { Action = action, State = tempState});
+                if (tempState.Finished)
+                {
+                    break;
+                }
+                distance++;
+            }
+        }
+        public static List<GameState> GetPossibleStates(Game currentState, bool isFirstPlayer)
+        {
+            List<GameState> states = new List<GameState>();
+            GetMovesForDirection("q", currentState, isFirstPlayer, states);
+            GetMovesForDirection("w", currentState, isFirstPlayer, states);
+            GetMovesForDirection("e", currentState, isFirstPlayer, states);
+            GetMovesForDirection("a", currentState, isFirstPlayer, states);
+            GetMovesForDirection("s", currentState, isFirstPlayer, states);
+            GetMovesForDirection("d", currentState, isFirstPlayer, states);
+            Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
+            if (player.X == player.HiveX && player.Y == player.HiveY)
+            {
+                Game tempStateRegenerateEnergy = currentState.DeepCopy();
+                FeedBeeWithNectar feedAction = new FeedBeeWithNectar { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId, AmountOfNectarToFeedWith = (100 - player.Energy) / 2 };
+                ApplyFeedBeeWithNectar(tempStateRegenerateEnergy, feedAction, isFirstPlayer);
+                states.Add(new GameState { Action = feedAction, State = tempStateRegenerateEnergy });
+
+                Game tempStateCreateHoney = currentState.DeepCopy();
+                ConvertNectarToHoney createHoneyAction = new ConvertNectarToHoney { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId, AmountOfHoneyToMake = 10 };
+                ApplyFeedBeeWithNectar(tempStateCreateHoney, feedAction, isFirstPlayer);
+                states.Add(new GameState { Action = createHoneyAction, State = tempStateCreateHoney });
+            }
+            Game tempStateSkipATurn = currentState.DeepCopy();
+            SkipATurn action = new SkipATurn { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId };
+            ApplySkipATurn(tempStateSkipATurn, isFirstPlayer);
+            return states;
+        }
+
+        private static Tuple<int, int> getCoordinatesAfterMove(int xCo, int yCo, String dir)
         {
             int offset;
             switch (dir)
@@ -169,6 +220,47 @@ namespace BagerMC
                 default:
                     return Tuple.Create(0, 0);
             }
+        }
+        public static bool IsGameFinished(Game game)
+        {
+            // 1. Uslov za kraj (dostignut potez 500)
+            if (game.NumOfMove >= 500)
+            {
+                game.Finished = true;
+                return true;
+            }
+            // 2. Uslov za kraj (nema cveca na mapi)
+            if (IsBoardEmpty(game) == true)
+            {
+                game.Finished = true;
+                return true;
+            }
+            // 3. Uslov za kraj (SkipATurn > 150)
+            if (game.Player1.NumOfSkipATurnUsed == 150 || game.Player2.NumOfSkipATurnUsed == 150)
+            {
+                game.Finished = true;
+                return true;
+            }
+            // 5. Uslov za kraj (Igrac stao na POND polje)
+
+            // 6. Uslov za kraj (Igrac nema vise energije)
+            if (game.Player1.Energy == 0 || game.Player2.Energy == 0)
+            {
+                game.Finished = true;
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsBoardEmpty(Game game)
+        {
+            foreach (var tile in game.Map.Tiles)
+            {
+                if (tile.TileContent.ItemType == ItemType.CHERRY_BLOSSOM || tile.TileContent.ItemType == ItemType.ROSE || tile.TileContent.ItemType == ItemType.LILAC || tile.TileContent.ItemType == ItemType.SUNFLOWER)
+                    return false;
+            }
+            return true;
         }
 
         public static Direction GetDirection(int oldX, int oldY, int newX, int newY, int distanceTraveled)

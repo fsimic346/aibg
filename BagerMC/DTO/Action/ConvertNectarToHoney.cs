@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BagerMC.DTO.Action
 {
-    public class ConvertNectarToHoney
+    public class ConvertNectarToHoney : BaseAction
     {
         [JsonProperty("playerId")]
         public int PlayerId { get; set; }

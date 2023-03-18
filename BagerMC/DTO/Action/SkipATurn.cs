@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace BagerMC.DTO.Action
 {
-    public class SkipATurn
+    public class SkipATurn : BaseAction
     {
         [JsonProperty("playerId")]
         public int PlayerId { get; set; }
