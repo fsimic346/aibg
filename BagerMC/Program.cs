@@ -11,13 +11,11 @@ Training training = new Training();
 training.PlayerSpot = 1;
 training.PlayerId = gameAPI.PlayerId;
 await gameAPI.CreateGame(training);
-Console.ReadLine();
 
 while (!gameAPI.Game.Finished)
 {
     GameState currentState = new GameState();
     currentState.State = gameAPI.Game;
     GameState result = MinMax.MiniMax(currentState, 2, -100000, 1000000, true);
-    //Console.WriteLine(result.Action.GetType().Name);
     result.Action.Execute(gameAPI);
 }

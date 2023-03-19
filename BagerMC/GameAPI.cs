@@ -10,10 +10,11 @@ namespace BagerMC
     {
         public Game Game;
         public int PlayerId = 132485;
-        private int GameId;
+        private int GameId = 123;
         public string BaseUrl = "http://localhost:8080/";
         public HttpClient HttpClient;
-        private bool IsTraining = true;
+        private bool IsTraining = false;
+        public static bool IsFirstPlayer = true;
         public GameAPI()
         {
             HttpClient = new HttpClient();
@@ -24,80 +25,30 @@ namespace BagerMC
             if (IsTraining)
                 BaseUrl += "train/";
         }
-
-        //public async Task ExecuteAction<T>(T data) where T:BaseAction
-        //{
-        //    var genType = data.GetType();
-
-        //    if (genType != typeof(ConvertNectarToHoney) && genType != typeof(FeedBeeWithNectar) && genType != typeof(Move) && genType != typeof(SkipATurn)) { return; }
-
-
-        //    Move move = data as Move;
-        //    string endpoint = char.ToLower(genType.Name[0]) + genType.Name[1..];
-        //    var response = HttpClient.PostAsJsonAsync(BaseUrl + endpoint, data).Result;
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var jsonString = await response.Content.ReadAsStringAsync();
-        //        Game = JsonConvert.DeserializeObject<Game>(jsonString);
-        //    }
-        //}
         public async Task CreateGame(Training data)
         {
             string uri = IsTraining ? BaseUrl + "makeGame" : BaseUrl + $"joinGame?playerId={PlayerId}&gameId={GameId}";
-            //string uri = $"http://localhost:8080/botVSbot?player1Id={PlayerId}&player2Id={PlayerId+1}";
-            // var response = HttpClient.GetStringAsync(uri).Result;
-
-            var response = HttpClient.PostAsJsonAsync(uri, data).Result;
-
-            if (response.IsSuccessStatusCode)
+            //string uri = $"http://localhost:8080/botVSbot?player1Id={PlayerId}&player2Id={PlayerId + 1}";
+            if (!IsTraining)
             {
-                var jsonString = await response.Content.ReadAsStringAsync();
-                Game = JsonConvert.DeserializeObject<Game>(jsonString);
+                var response = HttpClient.GetStringAsync(uri).Result;
+                Game = JsonConvert.DeserializeObject<Game>(response);
+                if(Game.Player1.ExecutedAction != null)
+                {
+                    IsFirstPlayer = false;
+                }
+            }
+            else
+            {
+
+                var response = HttpClient.PostAsJsonAsync(uri, data).Result;
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var jsonString = await response.Content.ReadAsStringAsync();
+                    Game = JsonConvert.DeserializeObject<Game>(jsonString);
+                }
             }
         }
-        //public async Task Move(Move data)
-        //{
-        //    var response = HttpClient.PostAsJsonAsync("move", data).Result;
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var jsonString = await response.Content.ReadAsStringAsync();
-        //        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
-        //    }
-        //}
-
-        //public async Task ConvertNectarToHoney(ConvertNectarToHoney data)
-        //{
-        //    var response = HttpClient.PostAsJsonAsync("convertNectarToHoney", data).Result;
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var jsonString = await response.Content.ReadAsStringAsync();
-        //        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
-        //    }
-        //}
-
-        //public async Task FeedBeWithNectar(FeedBeeWithNectar data)
-        //{
-        //    var response = HttpClient.PostAsJsonAsync("feedBeeWithNectar", data).Result;
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var jsonString = await response.Content.ReadAsStringAsync();
-        //        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
-        //    }
-        //}
-
-        //public async Task SkipATurn(SkipATurn data)
-        //{
-        //    var response = HttpClient.PostAsJsonAsync("skipATurn", data).Result;
-
-        //    if (response.IsSuccessStatusCode)
-        //    {
-        //        var jsonString = await response.Content.ReadAsStringAsync();
-        //        GlobalState.Game = JsonConvert.DeserializeObject<Game>(jsonString);
-        //    }
-        //}
     }
 }

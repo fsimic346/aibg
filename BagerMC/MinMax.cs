@@ -1,4 +1,5 @@
-﻿using BagerMC.DTO.Model;
+﻿using BagerMC.DTO.Action;
+using BagerMC.DTO.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -56,9 +57,21 @@ namespace BagerMC
 
         private static int EvaluateState(Game state)
         {
+            Player player1;
+            Player player2;
+            if (GameAPI.IsFirstPlayer)
+            {
+                player1 = state.Player1;
+                player2 = state.Player2;
+            }
+            else
+            {
+                player1 = state.Player2;
+                player2 = state.Player1;
+            }
             int score = 0;
-            score += state.Player1.Score - state.Player2.Score;
-            if (state.Player1.Nectar >= 50 && state.Player1.X == state.Player1.HiveX && state.Player1.Y == state.Player1.HiveY)
+            score += player1.Score;
+            if (player1.Nectar >= 50 && player1.X == player1.HiveX && player1.Y == player1.HiveY)
                 score += 1000;
             return score;
         }

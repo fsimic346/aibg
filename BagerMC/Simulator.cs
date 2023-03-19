@@ -47,7 +47,7 @@ namespace BagerMC
         public static void ApplyMove(Game currentState, Move action, bool isFirstPlayer)
         {
             Player player = isFirstPlayer ? currentState.Player1 : currentState.Player2;
-            Player opponent = !isFirstPlayer ? currentState.Player1 : currentState.Player2;
+            Player opponent = isFirstPlayer ? currentState.Player1 : currentState.Player2;
             if (player.Frozen)
                 throw new InvalidActionException("Player is frozen");
             for (int i = 0; i < action.Distance; i++)
@@ -213,7 +213,10 @@ namespace BagerMC
             SkipATurn action = new SkipATurn { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId };
             ApplySkipATurn(tempStateSkipATurn, isFirstPlayer);
             if (player.Energy < 15)
+            {
+                player.Score += 1;
                 states.Add(new GameState { Action = action, State = tempStateSkipATurn });
+            }
             return states;
         }
 
@@ -312,44 +315,5 @@ namespace BagerMC
             }
             return Direction.d;
         }
-
-        public static void HandleOpponent(Game oldState, Game newState)
-        {
-            Player opponent = newState.Player2;
-            try
-            {
-                if (opponent.ExecutedAction == ExecutedAction.MOVE || opponent.ExecutedAction == ExecutedAction.MOVE_ON_POND || opponent.ExecutedAction == ExecutedAction.MOVE_IMPOSSIBLE)
-                {
-                    Move move = new Move();
-                    move.Distance = opponent.DistanceMoved;
-                    move.Direction = GetDirection(oldState.Player2.X, oldState.Player2.Y, opponent.X, opponent.Y, opponent.DistanceMoved).ToString();
-                    //Console.WriteLine(move.Direction);
-                    ApplyMove(oldState, move, false);
-                }
-                else if (opponent.ExecutedAction == ExecutedAction.SKIP_A_TURN)
-                {
-                    ApplySkipATurn(oldState, false);
-                }
-                else if (opponent.ExecutedAction == ExecutedAction.FEED_BEE_WITH_NECTAR)
-                {
-                    FeedBeeWithNectar feedBeeWithNectar = new FeedBeeWithNectar();
-                    feedBeeWithNectar.AmountOfNectarToFeedWith = (newState.Player2.Energy - oldState.Player2.Energy) / 2;
-                    ApplyFeedBeeWithNectar(oldState, feedBeeWithNectar, false);
-
-                }
-                else
-                {
-                    ConvertNectarToHoney convertNectarToHoney = new ConvertNectarToHoney();
-                    convertNectarToHoney.AmountOfHoneyToMake = (newState.Player2.Honey - oldState.Player2.Honey);
-                    ApplyConvertNectarToHoney(oldState, convertNectarToHoney, false);
-                }
-            }
-            catch (Exception)
-            {
-
-            }
-        }
-
-
     }
 }
