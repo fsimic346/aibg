@@ -150,6 +150,7 @@ namespace BagerMC
                     tile.TileContent.ItemType = ItemType.EMPTY;
                     player.Honey += tile.TileContent.NumOfItems;
                     player.Score += tile.TileContent.NumOfItems * 30;
+                    player.Score += 200;
                     break;
                 case (ItemType.FREEZE):
                     player.Score += 100;
@@ -175,11 +176,11 @@ namespace BagerMC
                     //Console.WriteLine(direction + " " + distance);
                     break;
                 }
-                states.Add(new GameState { Action = action, State = tempState });
                 if (tempState.Finished)
                 {
                     break;
                 }
+                states.Add(new GameState { Action = action, State = tempState });
                 distance++;
             }
 
