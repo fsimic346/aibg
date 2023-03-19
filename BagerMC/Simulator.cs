@@ -168,7 +168,7 @@ namespace BagerMC
                 try
                 {
                     ApplyMove(tempState, action, isFirstPlayer);
-                    Console.WriteLine(direction + " " + distance);
+                    //Console.WriteLine(direction + " " + distance);
                 }
                 catch (InvalidActionException e)
                 {
@@ -199,17 +199,20 @@ namespace BagerMC
                 Game tempStateRegenerateEnergy = currentState.DeepCopy();
                 FeedBeeWithNectar feedAction = new FeedBeeWithNectar { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId, AmountOfNectarToFeedWith = (100 - player.Energy) / 2 };
                 ApplyFeedBeeWithNectar(tempStateRegenerateEnergy, feedAction, isFirstPlayer);
-                states.Add(new GameState { Action = feedAction, State = tempStateRegenerateEnergy });
 
                 Game tempStateCreateHoney = currentState.DeepCopy();
                 ConvertNectarToHoney createHoneyAction = new ConvertNectarToHoney { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId, AmountOfHoneyToMake = 10 };
                 ApplyFeedBeeWithNectar(tempStateCreateHoney, feedAction, isFirstPlayer);
-                states.Add(new GameState { Action = createHoneyAction, State = tempStateCreateHoney });
+                if (player.Energy > 40)
+                    states.Add(new GameState { Action = createHoneyAction, State = tempStateCreateHoney });
+                else
+                    states.Add(new GameState { Action = feedAction, State = tempStateRegenerateEnergy });
             }
             Game tempStateSkipATurn = currentState.DeepCopy();
             SkipATurn action = new SkipATurn { GameId = currentState.GameId, PlayerId = currentState.CurrentPlayerId };
             ApplySkipATurn(tempStateSkipATurn, isFirstPlayer);
-            states.Add(new GameState { Action = action, State = tempStateSkipATurn });
+            if (player.Energy < 15)
+                states.Add(new GameState { Action = action, State = tempStateSkipATurn });
             return states;
         }
 
@@ -319,7 +322,7 @@ namespace BagerMC
                     Move move = new Move();
                     move.Distance = opponent.DistanceMoved;
                     move.Direction = GetDirection(oldState.Player2.X, oldState.Player2.Y, opponent.X, opponent.Y, opponent.DistanceMoved).ToString();
-                    Console.WriteLine(move.Direction);
+                    //Console.WriteLine(move.Direction);
                     ApplyMove(oldState, move, false);
                 }
                 else if (opponent.ExecutedAction == ExecutedAction.SKIP_A_TURN)

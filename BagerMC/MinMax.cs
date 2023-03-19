@@ -40,7 +40,7 @@ namespace BagerMC
                 MinEvaluatedState.Evaluation = 100000;
                 foreach (var item in Simulator.GetPossibleStates(currentState.State, maximizingPlayer))
                 {
-                    GameState childState = MiniMax(item, depth - 1, alpha, beta, false);
+                    GameState childState = MiniMax(item, depth - 1, alpha, beta, true);
                     if (childState.Evaluation < MinEvaluatedState.Evaluation)
                     {
                         MinEvaluatedState.Evaluation = childState.Evaluation;
@@ -56,7 +56,11 @@ namespace BagerMC
 
         private static int EvaluateState(Game state)
         {
-            return state.Player1.Score - state.Player2.Score;
+            int score = 0;
+            score += state.Player1.Score - state.Player2.Score;
+            if (state.Player1.Nectar >= 50 && state.Player1.X == state.Player1.HiveX && state.Player1.Y == state.Player1.HiveY)
+                score += 1000;
+            return score;
         }
     }
 }

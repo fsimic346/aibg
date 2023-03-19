@@ -27,7 +27,7 @@ namespace BagerMC.DTO.Action
         public async void Execute(GameAPI gameAPI)
         {
             var response = gameAPI.HttpClient.PostAsJsonAsync(gameAPI.BaseUrl + "move", this).Result;
-            Console.WriteLine(Direction + " " + Distance);
+            //Console.WriteLine(Direction + " " + Distance);
             if (response.IsSuccessStatusCode)
             {
                 var jsonString = await response.Content.ReadAsStringAsync();
